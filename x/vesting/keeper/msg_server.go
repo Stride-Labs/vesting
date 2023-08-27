@@ -6,8 +6,9 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"github.com/evmos/vesting/x/vesting/types"
 	"time"
+
+	"github.com/evmos/vesting/x/vesting/types"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -49,6 +50,14 @@ func (k Keeper) CreateClawbackVestingAccount(
 	if acc == nil {
 		return nil, errorsmod.Wrapf(errortypes.ErrInvalidRequest,
 			"account %s does not exist", msg.VestingAddress,
+		)
+	}
+
+	// Verify the account is a BaseAccount
+	_, isBaseAcc := acc.(*authtypes.BaseAccount)
+	if !isBaseAcc {
+		return nil, errorsmod.Wrapf(errortypes.ErrInvalidRequest,
+			"%s is not a BaseAccount", msg.VestingAddress,
 		)
 	}
 
