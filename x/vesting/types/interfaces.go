@@ -42,5 +42,5 @@ type StakingKeeper interface {
 // DistributionKeeper defines the expected interface contract the vesting module
 // requires for clawing back unvested coins to the community pool.
 type DistributionKeeper interface {
-	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
+	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }
