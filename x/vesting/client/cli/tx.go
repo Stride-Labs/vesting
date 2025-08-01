@@ -5,9 +5,11 @@ package cli
 
 import (
 	"fmt"
-	"github.com/evmos/vesting/x/vesting/types"
 	"strconv"
 	"time"
+
+	errorsmod "cosmossdk.io/errors"
+	"github.com/evmos/vesting/x/vesting/types"
 
 	"github.com/spf13/cobra"
 
@@ -15,9 +17,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 	sdkvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -346,7 +350,24 @@ func NewClawbackProposalCmd() *cobra.Command {
 				return err
 			}
 
-			if err := msg.ValidateBasic(); err != nil {
+			if _, err := sdk.AccAddressFromBech32(msg.Proposer); err != nil {
+				return sdkerrors.ErrInvalidAddress.Wrapf("invalid proposer address: %s", err)
+			}
+			if !msg.InitialDeposit.IsValid() {
+				return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.InitialDeposit.String())
+			}
+			if msg.InitialDeposit.IsAnyNegative() {
+				return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.InitialDeposit.String())
+			}
+
+			content = msg.GetContent()
+			if content == nil {
+				return errorsmod.Wrap(govtypes.ErrInvalidProposalContent, "missing content")
+			}
+			if !govv1beta1.IsValidProposalType(content.ProposalType()) {
+				return errorsmod.Wrap(govtypes.ErrInvalidProposalType, content.ProposalType())
+			}
+			if err := content.ValidateBasic(); err != nil {
 				return err
 			}
 
