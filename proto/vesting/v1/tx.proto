@@ -13,6 +13,8 @@ option go_package = "github.com/evmos/vesting/x/vesting/types";
 
 // Msg defines the vesting Msg service.
 service Msg {
+  option (cosmos.msg.v1.service) = true;
+
   // CreateClawbackVestingAccount creats a vesting account that is subject to clawback.
   rpc CreateClawbackVestingAccount(MsgCreateClawbackVestingAccount) returns (MsgCreateClawbackVestingAccountResponse) {
     option (google.api.http).get = "/evmos/vesting/v1/tx/create_clawback_vesting_account";
